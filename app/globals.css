@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: #8b5a2b;
+  --secondary: #d4a373;
+  --background: #fdf6f0;
+  --text: #2d1b12;
+  --accent: #a67c52;
+  --success: #4caf50;
+  --error: #e74c3c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  font-family: 'Cairo', sans-serif;
+}
+
+body[dir='ltr'] {
+  font-family: 'Inter', sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 999px;
+}
+
+.gradient-hero {
+  background: radial-gradient(circle at 20% 20%, rgba(212, 163, 115, 0.35), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(139, 90, 43, 0.25), transparent 50%),
+    var(--background);
+}
+
+.text-balance {
+  text-wrap: balance;
+}

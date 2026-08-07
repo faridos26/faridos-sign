@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Ingredient {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  nameAr      String
+  nameEn      String
+  family      String
+  position    String // top | heart | base
+  cost        Float
+  maxConc     Float
+  volatility  String
+  ifra        Float
+  harmony     String[] // array of family keys
+  natural     Boolean  @default(true)
+  emoji       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Perfume {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  brand        String
+  gender       String
+  timing       String[]
+  season       String[]
+  usageType    String[]
+  families     Json // { family: weight }
+  notes        String[] // ingredient codes
+  longevity    String
+  sillage      String
+  pricePer50ml Float
+  personality  String
+  bestUse      String[]
+  bestTime     String
+  imageUrl     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  results SurveyResult[]
+}
+
+model SurveyResult {
+  id               String   @id @default(cuid())
+  answers          Json // raw SurveyAnswers
+  scentDna         Json // ScentDnaEntry[]
+  matchScore       Float
+  archetype        String
+  customFormula    Json // CustomFormula
+  matchedPerfumeId String?
+  matchedPerfume   Perfume? @relation(fields: [matchedPerfumeId], references: [id])
+  lead             Lead?
+  createdAt        DateTime @default(now())
+}
+
+model Lead {
+  id             String       @id @default(cuid())
+  name           String
+  email          String
+  phone          String?
+  resultId       String       @unique
+  result         SurveyResult @relation(fields: [resultId], references: [id])
+  wantsSample    Boolean      @default(false)
+  contacted      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
