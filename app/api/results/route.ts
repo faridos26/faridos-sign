@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
         answers,
         scentDna: result.scentDna,
         matchScore: result.matchScore,
-        archetype: result.archetype,
+        archetype: result.archetype.ar,
         customFormula: result.customFormula,
         matchedPerfumeId: matchedPerfume?.id,
       },
@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ id: created.id }, { status: 201 });
   } catch (error) {
     console.error('Failed to persist survey result:', error);
-    // لا نفشل تجربة المستخدم بسبب خطأ في قاعدة البيانات — النتيجة محفوظة محليًا في المتصفح أصلاً
     return NextResponse.json({ error: 'could not save result' }, { status: 200 });
   }
 }

@@ -1,18 +1,19 @@
 import { SurveyAnswers } from './validation';
-import { familyKeyMap, noteKeyMap } from './survey-data';
 import { perfumeCatalog, CatalogPerfume } from './perfume-catalog';
-import { ingredientsData, Ingredient } from './ingredients-data';
+import { ingredientsData, Ingredient, familyLabels } from './ingredients-data';
+import { Lang } from './i18n/ui-translations';
+import { Bilingual } from './survey-data';
 
 export interface ScentDnaEntry {
   family: string;
-  familyAr: string;
+  familyLabel: Bilingual;
   emoji: string;
-  score: number; // 0-100
+  score: number;
 }
 
 export interface FormulaNote {
   ingredient: Ingredient;
-  concentration: number; // %
+  concentration: number;
 }
 
 export interface CustomFormula {
@@ -25,58 +26,41 @@ export interface CustomFormula {
 
 export interface RecommendationResult {
   matchedPerfume: CatalogPerfume;
-  matchScore: number; // 0-100
+  matchScore: number;
   scentDna: ScentDnaEntry[];
-  archetype: string;
+  archetype: Bilingual;
   customFormula: CustomFormula;
-  reasoning: string;
+  reasoning: Bilingual;
 }
 
-const familyMeta: Record<string, { ar: string; emoji: string }> = {
-  floral: { ar: 'زهرية', emoji: '🌸' },
-  woody: { ar: 'خشبية', emoji: '🌲' },
-  oceanic: { ar: 'بحرية', emoji: '🌊' },
-  oriental: { ar: 'شرقية', emoji: '🔥' },
-  citrus: { ar: 'حمضية', emoji: '🍋' },
-  leather: { ar: 'جلدية', emoji: '👜' },
-  musk: { ar: 'مسكية', emoji: '🕊️' },
-  amber: { ar: 'عنبرية', emoji: '💎' },
-};
-
-/**
- * يبني "بصمة الرائحة" (Scent DNA) بناءً على إجابات الاستبيان.
- * العائلة الرئيسية تأخذ الوزن الأكبر، ثم الثانوية، ثم النوتات المفضلة تضيف نقاطًا إضافية لعائلاتها.
- */
 function buildScentDna(answers: SurveyAnswers): ScentDnaEntry[] {
   const scores: Record<string, number> = {};
 
-  const mainKey = familyKeyMap[answers.mainFamily];
-  if (mainKey) scores[mainKey] = (scores[mainKey] ?? 0) + 70;
+  scores[answers.mainFamily] = (scores[answers.mainFamily] ?? 0) + 70;
 
-  if (answers.secondaryFamily && answers.secondaryFamily !== 'لا شيء') {
-    const secKey = familyKeyMap[answers.secondaryFamily];
-    if (secKey) scores[secKey] = (scores[secKey] ?? 0) + 35;
+  if (answers.secondaryFamily && answers.secondaryFamily !== 'none') {
+    scores[answers.secondaryFamily] = (scores[answers.secondaryFamily] ?? 0) + 35;
   }
 
-  for (const noteLabel of answers.preferredNotes) {
-    const code = noteKeyMap[noteLabel];
+  for (const code of answers.preferredNotes) {
     const ingredient = ingredientsData.find((i) => i.code === code);
     if (ingredient) {
       scores[ingredient.family] = (scores[ingredient.family] ?? 0) + 15;
-      // النوتة تضيف حضورًا خفيفًا للعائلات المنسجمة معها أيضًا
       for (const harmonyFamily of ingredient.harmony) {
         scores[harmonyFamily] = (scores[harmonyFamily] ?? 0) + 5;
       }
     }
   }
 
-  // ضبط القيم بين 0 و 100
   const maxScore = Math.max(...Object.values(scores), 1);
   const dna: ScentDnaEntry[] = Object.entries(scores)
     .map(([family, raw]) => ({
       family,
-      familyAr: familyMeta[family]?.ar ?? family,
-      emoji: familyMeta[family]?.emoji ?? '✨',
+      familyLabel: {
+        ar: familyLabels[family]?.ar ?? family,
+        fr: familyLabels[family]?.fr ?? family,
+      },
+      emoji: familyLabels[family]?.emoji ?? '✨',
       score: Math.round(Math.min(100, (raw / maxScore) * 100)),
     }))
     .sort((a, b) => b.score - a.score)
@@ -85,12 +69,10 @@ function buildScentDna(answers: SurveyAnswers): ScentDnaEntry[] {
   return dna;
 }
 
-/** يحسب نسبة توافق عطر من الكتالوج مع بصمة المستخدم وإجاباته */
 function scorePerfume(perfume: CatalogPerfume, answers: SurveyAnswers, dna: ScentDnaEntry[]): number {
   let score = 0;
   let maxPossible = 0;
 
-  // 1) توافق العائلات العطرية (الوزن الأكبر: 45 نقطة)
   const dnaWeight = 45;
   maxPossible += dnaWeight;
   const dnaScoreRaw = dna.reduce((sum, entry) => {
@@ -99,42 +81,34 @@ function scorePerfume(perfume: CatalogPerfume, answers: SurveyAnswers, dna: Scen
   }, 0);
   score += Math.min(dnaWeight, dnaScoreRaw * dnaWeight);
 
-  // 2) الجنس (15 نقطة)
   maxPossible += 15;
-  if (perfume.gender === answers.gender || perfume.gender === 'غير محدد' || answers.gender === 'غير محدد') {
+  if (perfume.gender === answers.gender || perfume.gender === 'unisex' || answers.gender === 'unisex') {
     score += 15;
   }
 
-  // 3) التوقيت (10 نقاط)
   maxPossible += 10;
   if (perfume.timing.includes(answers.timing)) score += 10;
 
-  // 4) الموسم (10 نقاط)
   maxPossible += 10;
-  if (perfume.season.includes(answers.season) || perfume.season.includes('كل الفصول')) score += 10;
+  if (perfume.season.includes(answers.season) || perfume.season.includes('all')) score += 10;
 
-  // 5) طابع الاستخدام (10 نقاط)
   maxPossible += 10;
   if (perfume.usageType.includes(answers.usageType)) score += 10;
 
-  // 6) الثبات (5 نقاط)
   maxPossible += 5;
   if (perfume.longevity === answers.longevity) score += 5;
 
-  // 7) الحضور (5 نقاط)
   maxPossible += 5;
   if (perfume.sillage === answers.sillage) score += 5;
 
   return Math.round((score / maxPossible) * 100);
 }
 
-/** يبني معادلة عطر مخصصة (هرم النوتات) بناءً على العائلة والنوتات المفضلة وميزانية المستخدم */
 function buildCustomFormula(answers: SurveyAnswers, dna: ScentDnaEntry[]): CustomFormula {
   const topFamilies = dna.slice(0, 3).map((d) => d.family);
 
   const pickByPosition = (position: 'top' | 'heart' | 'base', count: number): Ingredient[] => {
     const preferred = answers.preferredNotes
-      .map((label) => noteKeyMap[label])
       .map((code) => ingredientsData.find((i) => i.code === code))
       .filter((i): i is Ingredient => !!i && i.position === position);
 
@@ -162,21 +136,23 @@ function buildCustomFormula(answers: SurveyAnswers, dna: ScentDnaEntry[]): Custo
   const all = [...top, ...heart, ...base];
   const totalConcentration = Math.round(all.reduce((sum, n) => sum + n.concentration, 0) * 10) / 10;
   const estimatedCostPer50ml =
-    Math.round(
-      all.reduce((sum, n) => sum + (n.concentration / 100) * 50 * n.ingredient.cost, 0) * 100
-    ) / 100;
+    Math.round(all.reduce((sum, n) => sum + (n.concentration / 100) * 50 * n.ingredient.cost, 0) * 100) / 100;
 
   return { top, heart, base, totalConcentration, estimatedCostPer50ml };
 }
 
-function buildReasoning(perfume: CatalogPerfume, answers: SurveyAnswers, dna: ScentDnaEntry[]): string {
+function buildReasoning(answers: SurveyAnswers, dna: ScentDnaEntry[]): Bilingual {
   const topFamily = dna[0];
-  const parts: string[] = [];
-  if (topFamily) {
-    parts.push(`لأنك تميل إلى الروائح ${topFamily.familyAr} بنسبة ${topFamily.score}%`);
+  if (!topFamily) {
+    return {
+      ar: 'اختيار متوازن يناسب أسلوبك.',
+      fr: 'Un choix équilibré qui correspond à votre style.',
+    };
   }
-  parts.push(`ويناسب استخدامك ${answers.usageType} في وقت ${answers.timing}`);
-  return parts.join('، ') + '.';
+  return {
+    ar: `لأنك تميل إلى الروائح ${topFamily.familyLabel.ar} بنسبة ${topFamily.score}%.`,
+    fr: `Parce que vous êtes attiré(e) par les notes ${topFamily.familyLabel.fr} à ${topFamily.score}%.`,
+  };
 }
 
 export function generateRecommendation(answers: SurveyAnswers): RecommendationResult {
@@ -188,13 +164,13 @@ export function generateRecommendation(answers: SurveyAnswers): RecommendationRe
 
   const best = scored[0];
   const customFormula = buildCustomFormula(answers, dna);
-  const reasoning = buildReasoning(best.perfume, answers, dna);
+  const reasoning = buildReasoning(answers, dna);
 
   return {
     matchedPerfume: best.perfume,
     matchScore: best.score,
     scentDna: dna,
-    archetype: best.perfume.personality.split('—')[0]?.trim() ?? 'Signature Scent',
+    archetype: best.perfume.archetype,
     customFormula,
     reasoning,
   };

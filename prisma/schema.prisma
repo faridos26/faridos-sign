@@ -11,17 +11,19 @@ model Ingredient {
   id          String   @id @default(cuid())
   code        String   @unique
   nameAr      String
+  nameFr      String
   nameEn      String
   family      String
-  position    String // top | heart | base
+  position    String
   cost        Float
   maxConc     Float
   volatility  String
   ifra        Float
-  harmony     String[] // array of family keys
+  harmony     String[]
   natural     Boolean  @default(true)
   emoji       String?
   description String?
+  descriptionFr String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -35,15 +37,18 @@ model Perfume {
   timing       String[]
   season       String[]
   usageType    String[]
-  families     Json // { family: weight }
-  notes        String[] // ingredient codes
+  families     Json
+  notes        String[]
   longevity    String
   sillage      String
   pricePer50ml Float
-  personality  String
-  bestUse      String[]
-  bestTime     String
-  imageUrl     String?
+  personalityAr String
+  personalityFr String
+  archetype    String
+  bestUseAr    String
+  bestUseFr    String
+  bestTimeAr   String
+  bestTimeFr   String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -52,11 +57,11 @@ model Perfume {
 
 model SurveyResult {
   id               String   @id @default(cuid())
-  answers          Json // raw SurveyAnswers
-  scentDna         Json // ScentDnaEntry[]
+  answers          Json
+  scentDna         Json
   matchScore       Float
   archetype        String
-  customFormula    Json // CustomFormula
+  customFormula    Json
   matchedPerfumeId String?
   matchedPerfume   Perfume? @relation(fields: [matchedPerfumeId], references: [id])
   lead             Lead?

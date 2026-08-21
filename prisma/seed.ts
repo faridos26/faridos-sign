@@ -13,6 +13,7 @@ async function main() {
       create: {
         code: ing.code,
         nameAr: ing.nameAr,
+        nameFr: ing.nameFr,
         nameEn: ing.nameEn,
         family: ing.family,
         position: ing.position,
@@ -24,6 +25,7 @@ async function main() {
         natural: ing.natural,
         emoji: ing.emoji,
         description: ing.desc,
+        descriptionFr: ing.descFr,
       },
     });
   }
@@ -46,9 +48,13 @@ async function main() {
         longevity: p.longevity,
         sillage: p.sillage,
         pricePer50ml: p.pricePer50ml,
-        personality: p.personality,
-        bestUse: p.bestUse,
-        bestTime: p.bestTime,
+        personalityAr: p.personality.ar,
+        personalityFr: p.personality.fr,
+        archetype: p.archetype.ar,
+        bestUseAr: p.bestUse.ar,
+        bestUseFr: p.bestUse.fr,
+        bestTimeAr: p.bestTime.ar,
+        bestTimeFr: p.bestTime.fr,
       },
     });
   }

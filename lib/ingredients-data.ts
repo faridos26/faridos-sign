@@ -4,20 +4,22 @@ export type IngredientVolatility = 'high' | 'medium' | 'low' | 'very_low';
 export interface Ingredient {
   code: string;
   nameAr: string;
+  nameFr: string;
   nameEn: string;
   family: string;
   position: IngredientPosition;
-  cost: number; // $ per gram (approx, wholesale)
-  maxConc: number; // max recommended concentration %
+  cost: number;
+  maxConc: number;
   volatility: IngredientVolatility;
-  ifra: number; // IFRA safety ceiling reference (illustrative)
-  harmony: string[]; // families this ingredient blends well with
+  ifra: number;
+  harmony: string[];
   natural: boolean;
   emoji: string;
   desc: string;
+  descFr: string;
 }
 
-export const ingredientsData: Ingredient[] = [
+const rawIngredientsData: Omit<Ingredient, 'nameFr' | 'descFr'>[] = [
   // ====== نوتات عليا (Top Notes) ======
   { code: 'BER-001', nameAr: 'برغموت', nameEn: 'Bergamot', family: 'citrus', position: 'top', cost: 0.9, maxConc: 8, volatility: 'high', ifra: 10, harmony: ['floral', 'woody'], natural: true, emoji: '🍋', desc: 'حمضي منعش مع لمسة زهرية خفيفة' },
   { code: 'LEM-001', nameAr: 'ليمون إيطالي', nameEn: 'Italian Lemon', family: 'citrus', position: 'top', cost: 0.7, maxConc: 6, volatility: 'high', ifra: 8, harmony: ['oceanic', 'citrus'], natural: true, emoji: '🍊', desc: 'حمضي نقي ومنعش' },
@@ -45,13 +47,52 @@ export const ingredientsData: Ingredient[] = [
   { code: 'LEA-001', nameAr: 'جلد', nameEn: 'Leather', family: 'leather', position: 'base', cost: 4.5, maxConc: 4, volatility: 'low', ifra: 4, harmony: ['woody', 'oriental'], natural: false, emoji: '👜', desc: 'جلدية دافئة وقوية' },
 ];
 
-export const familyLabels: Record<string, { ar: string; emoji: string }> = {
-  floral: { ar: 'زهرية', emoji: '🌸' },
-  woody: { ar: 'خشبية', emoji: '🌲' },
-  oceanic: { ar: 'بحرية/أوزونية', emoji: '🌊' },
-  oriental: { ar: 'شرقية', emoji: '🔥' },
-  citrus: { ar: 'حمضية', emoji: '🍋' },
-  leather: { ar: 'جلدية', emoji: '👜' },
-  musk: { ar: 'مسكية', emoji: '🕊️' },
-  amber: { ar: 'عنبرية', emoji: '💎' },
+const frenchNames: Record<string, string> = {
+  'BER-001': 'Bergamote', 'LEM-001': 'Citron Italien', 'MAN-001': 'Mandarine',
+  'LAV-001': 'Lavande', 'PEP-001': 'Menthe Poivrée', 'JAS-001': 'Absolue de Jasmin',
+  'ROS-001': 'Rose de Damas', 'GER-001': 'Géranium', 'CAR-001': 'Cardamome',
+  'NER-001': 'Néroli', 'YLA-001': 'Ylang-Ylang', 'SND-001': 'Bois de Santal',
+  'PAT-001': 'Patchouli', 'MUS-001': 'Musc Blanc', 'AMB-001': 'Ambroxan',
+  'VAN-001': 'Vanilline', 'OUD-001': 'Oud', 'VET-001': 'Vétiver',
+  'TON-001': 'Fève Tonka', 'LEA-001': 'Cuir',
+};
+
+const frenchDescs: Record<string, string> = {
+  'BER-001': 'Agrume frais avec une touche florale légère',
+  'LEM-001': 'Agrume pur et rafraîchissant',
+  'MAN-001': 'Agrume sucré avec une touche fruitée',
+  'LAV-001': 'Florale herbacée apaisante',
+  'PEP-001': 'Fraîche et puissante avec une touche froide',
+  'JAS-001': 'Florale riche et sensuelle',
+  'ROS-001': 'Florale luxueuse et romantique',
+  'GER-001': 'Florale herbacée avec une touche mentholée',
+  'CAR-001': 'Orientale chaude et épicée',
+  'NER-001': 'Florale citronnée avec une touche délicate',
+  'YLA-001': 'Florale tropicale douce et attirante',
+  'SND-001': 'Boisée chaude et crémeuse',
+  'PAT-001': 'Boisée terreuse et mystérieuse',
+  'MUS-001': 'Musquée douce et chaude',
+  'AMB-001': 'Ambrée chaude avec une touche marine',
+  'VAN-001': 'Douce et chaude avec une touche crémeuse',
+  'OUD-001': 'Boisée luxueuse et profonde',
+  'VET-001': 'Boisée terreuse avec une touche fumée',
+  'TON-001': 'Douce et noisette avec une touche épicée',
+  'LEA-001': 'Cuir chaud et puissant',
+};
+
+export const ingredientsData: Ingredient[] = rawIngredientsData.map((ing) => ({
+  ...ing,
+  nameFr: frenchNames[ing.code] ?? ing.nameEn,
+  descFr: frenchDescs[ing.code] ?? '',
+}));
+
+export const familyLabels: Record<string, { ar: string; fr: string; emoji: string }> = {
+  floral: { ar: 'زهرية', fr: 'Florale', emoji: '🌸' },
+  woody: { ar: 'خشبية', fr: 'Boisée', emoji: '🌲' },
+  oceanic: { ar: 'بحرية/أوزونية', fr: 'Marine/Ozonique', emoji: '🌊' },
+  oriental: { ar: 'شرقية', fr: 'Orientale', emoji: '🔥' },
+  citrus: { ar: 'حمضية', fr: 'Agrumes', emoji: '🍋' },
+  leather: { ar: 'جلدية', fr: 'Cuir', emoji: '👜' },
+  musk: { ar: 'مسكية', fr: 'Musquée', emoji: '🕊️' },
+  amber: { ar: 'عنبرية', fr: 'Ambrée', emoji: '💎' },
 };

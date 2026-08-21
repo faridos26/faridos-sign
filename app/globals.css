@@ -14,31 +14,20 @@
   --error: #e74c3c;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 body {
   background-color: var(--background);
   color: var(--text);
   font-family: 'Cairo', sans-serif;
 }
-
-body[dir='ltr'] {
+html[dir='ltr'] body {
   font-family: 'Inter', sans-serif;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--secondary);
-  border-radius: 999px;
-}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 999px; }
 
 .gradient-hero {
   background: radial-gradient(circle at 20% 20%, rgba(212, 163, 115, 0.35), transparent 55%),
@@ -46,6 +35,4 @@ body[dir='ltr'] {
     var(--background);
 }
 
-.text-balance {
-  text-wrap: balance;
-}
+.text-balance { text-wrap: balance; }

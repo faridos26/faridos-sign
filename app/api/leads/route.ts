@@ -11,8 +11,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    // resultId المُرسل من الواجهة قد يكون معرّفًا محليًا (local-...) وليس معرّف قاعدة البيانات؛
-    // في هذه الحالة النموذج الأولي يحفظ بيانات العميل فقط دون ربطها بسجل نتيجة.
     const isLocalId = parsed.data.resultId.startsWith('local-');
 
     if (isLocalId) {
